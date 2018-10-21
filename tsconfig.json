@@ -2,7 +2,6 @@
   "compileOnSave": false,
   "compilerOptions": {
     "alwaysStrict": true,
-    "emitDecoratorMetadata": true,
     "module": "commonjs",
     "moduleResolution": "node",
     "noUnusedLocals": true,
@@ -10,8 +9,7 @@
     "removeComments": true,
     "skipLibCheck": true,
     "target": "es6",
-    "types": ["node"],
-    "outDir": "dist"
+    "outDir": "./dist"
   },
   "include": [
     "src/**/*"

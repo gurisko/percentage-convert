@@ -1,0 +1,18 @@
+{
+  "name": "perc",
+  "version": "1.0.0",
+  "description": "Number to percentage converter that maintains total sum of 100%",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc && mocha --reporter spec"
+  },
+  "repository": "https://github.com/gurisko/perc.git",
+  "author": "Matus Gura <matus.gura@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "chai": "^4.2.0",
+    "mocha": "^5.2.0",
+    "typescript": "^3.1.3"
+  }
+}
