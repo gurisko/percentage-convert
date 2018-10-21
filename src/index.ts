@@ -1,55 +1,41 @@
-interface IConvertOptions {
-  favorLarge?: boolean;
-  respectTie?: boolean;
+function sum(arr: number[]) {
+  return arr.reduce((sum, elem) => sum + elem, 0);
 }
 
-export function convert(input: number[], places: number = 0, options: IConvertOptions = {}) {
-  const {favorLarge, respectTie} = Object.assign({favorLarge: true, respectTie: false}, options);
+export function convert(input: number[] = [], places: number = 0): string[] {
   const multiplier = 10 ** places;
+  const pad = '0'.repeat(places);
+
+  if (!Array.isArray(input) || input.length === 0) {
+    throw new Error('No number passed');
+  }
 
   if (places < 0 || Math.floor(places) !== places) {
     throw new Error('Invalid number of decimal places');
   }
 
-  const sum = input.reduce((aggr, curr) => aggr + curr, 0);
-  const percentageRaw = input.map(curr => 100 * curr / sum);
-  const percentageRounded = percentageRaw.map(curr => Math.floor(curr * multiplier) / multiplier);
+  const inputSum = sum(input);
+  const percentage = input.map(curr => Math.round(100 * multiplier * curr / inputSum));
+  let missing = multiplier * 100 - sum(percentage);
 
-  const missing = 100 * multiplier - Math.floor(100 * percentageRounded.reduce((aggr, curr) => aggr + curr, 0));
-  if (missing === 0) {
-    return percentageRounded;
+  const internal = percentage.map((v, index) => ({
+    index,
+    decimal: Math.floor(v / multiplier),
+    fractional: v % multiplier,
+  })).sort((a, b) => b.fractional - a.fractional);
+
+  let index = 0;
+  while (missing !== 0) {
+    const operation = missing > 0 ? 1 : -1;
+    internal[index].fractional = internal[index].fractional + operation;
+    missing = missing - operation;
+    index = !internal[index + 1].fractional ? 0 : index + 1;
   }
 
-  const priority = percentageRaw
-    .map((curr, index) => ({index, value: curr - percentageRounded[index]}))
-    .sort(favorLarge ? (a, b) => b.value - a.value : (a, b) => a.value - b.value);
-
-  if (respectTie) {
-    const addingMap: {[k: string]: number} = {};
-    const occurrenceMap: {[k: string]: number} = input.reduce((aggr: {[k: string]: number}, curr) => ({...aggr, [curr]: aggr.hasOwnProperty(curr) ? aggr[curr] + 1 : 1}), {});
-
-    let i = 0;
-    let added = 0;
-    while (added < missing && i < input.length) {
-      const {index} = priority[i];
-      const number = input[index];
-
-      if (!addingMap.hasOwnProperty(number)) {
-        addingMap[number] = Math.floor((missing - added) / occurrenceMap[number]);
-      }
-      const toAdd = addingMap[number];
-      if (toAdd > 0) {
-        percentageRounded[index] = Math.round(percentageRounded[index] * multiplier + toAdd) / multiplier;
-        added += toAdd;
-      }
-      i += 1;
-    }
-    return percentageRounded;
-  }
-  for (let i = 0; i < missing; i += 1) {
-    const {index} = priority[i];
-    percentageRounded[index] = Math.round(percentageRounded[index] * multiplier + 1) / multiplier;
-  }
-
-  return percentageRounded;
+  return internal
+    .sort((a, b) => a.index - b.index)
+    .map(v => {
+      const fractionalStr = v.fractional.toString();
+      return `${v.decimal}.${pad.substring(fractionalStr.length)}${fractionalStr}`;
+    });
 }
